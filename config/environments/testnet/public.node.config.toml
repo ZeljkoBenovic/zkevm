@@ -1,0 +1,151 @@
+IsTrustedSequencer = true
+
+[Log]
+Environment = "development" # "production" or "development"
+Level = "debug"
+Outputs = ["stderr"]
+
+[StateDB]
+User = "state_user"
+Password = "state_pass"
+Name = "state_db"
+Host = "zkevm-state-db"
+Port = "5432"
+EnableLog = false
+MaxConns = 200
+
+[SyncDB]
+Database = "postgres"
+User = "bridge_user"
+Password = "bridge_password"
+Name = "bridge_db"
+Host = "zkevm-bridge-db"
+Port = "5432"
+MaxConns = 20
+
+[Pool]
+MaxTxBytesSize=100132
+MaxTxDataBytesSize=100000
+DefaultMinGasPriceAllowed = 1000000000
+MinAllowedGasPriceInterval = "5m"
+PollMinAllowedGasPriceInterval = "15s"
+	[Pool.DB]
+	User = "pool_user"
+	Password = "pool_password"
+	Name = "pool_db"
+	Host = "zkevm-pool-db"
+	Port = "5432"
+	EnableLog = false
+	MaxConns = 200
+
+[Etherman]
+URL = "http://54.85.85.47:8845"
+MultiGasProvider = false
+L1URL = "http://54.85.85.47:8845"
+L2URLs = ["http://zkevm-rpc:8545"]
+	[Etherman.Etherscan]
+		ApiKey = "7F8293VJ8ZG2W2MN9UQ8FMA3RESQ3ADYBU"
+[Aggregator]
+Host = "0.0.0.0"
+Port = 50081
+ForkId = 4
+RetryTime = "5s"
+VerifyProofInterval = "30s"
+TxProfitabilityCheckerType = "acceptall"
+TxProfitabilityMinReward = "1.1"
+ProofStatePollingInterval = "5s"
+SenderAddress = "0x8698A03Ecb84a0A8Ed1D1d874E6a8D8cfA3b8edc"  # trustedAggregator from deploy_output.json
+CleanupLockedProofsInterval = "2m"
+GeneratingProofCleanupThreshold = "10m"
+
+[SequenceSender]
+WaitPeriodSendSequence = "5s"
+LastBatchVirtualizationTimeMaxWaitPeriod = "5s"
+MaxTxSizeForL1 = 131072
+L2Coinbase = "0xdD5d6E6F0851a8e8953834D47DAE18ee5aCcf92f"
+SenderAddress = "0xdD5d6E6F0851a8e8953834D47DAE18ee5aCcf92f"
+PrivateKeys = [
+	{Path = "/pk/sequencer.keystore", Password = "password"}
+]
+
+
+[NetworkConfig]
+GenBlockNumber = 9579202     # deploymentBlockNumber from deploy_output.json
+PolygonZkEVMAddress = "0x556861Fa23Db6EaC0994551F26b9E10E8EA961b4"    # polygonZkEVMAddress from deploy_output.json
+PolygonBridgeAddress = "0x8Ed000718148edDF8E698FBA80d7Fef9dda2f81b"   # PolygonZkEVMBridge from genesis.json
+PolygonZkEVMGlobalExitRootAddress = "0xB7C432Ed7Dae36D71B1abD4D6baB3bc943eCfB9e"   # polygonZkEVMGlobalExitRootAddress from deploy_output.json
+MaticTokenAddress = "0x5060C6bc6494Da9C06429CeA0bC681Ff07b1Eba2"      # maticTokenAddress from deploy_output.json
+L2PolygonBridgeAddresses = ["0x8Ed000718148edDF8E698FBA80d7Fef9dda2f81b"]         # PolygonZkEVMBridge from genesis.json
+L1ChainID = 5               # Goerli chainID
+
+[RPC]
+Host = "0.0.0.0"
+Port = 8545
+ReadTimeout = "60s"
+WriteTimeout = "60s"
+MaxRequestsPerIPAndSecond = 5000
+SequencerNodeURI = ""
+EnableL2SuggestedGasPricePolling = true
+	[RPC.WebSockets]
+		Enabled = true
+		Port = 8546
+
+[Synchronizer]
+SyncInterval = "2s"
+SyncChunkSize = 100
+TrustedSequencerURL = "" # If it is empty or not specified, then the value is read from the smc
+
+[MTClient]
+URI = "zkevm-executor:50061"
+
+[Executor]
+URI = "zkevm-executor:50071"
+MaxResourceExhaustedAttempts = 3
+WaitOnResourceExhaustion = "1s"
+MaxGRPCMessageSize = 100000000
+
+[Metrics]
+Host = "0.0.0.0"
+Port = 9091
+Enabled = false
+ProfilingHost = "0.0.0.0"
+ProfilingPort = 6060
+ProfilingEnabled = false
+
+[HashDB]
+User = "prover_user"
+Password = "prover_pass"
+Name = "prover_db"
+Host = "zkevm-state-db"
+Port = "5432"
+EnableLog = false
+MaxConns = 200
+
+
+[BridgeServer]
+GRPCPort = "9090"
+HTTPPort = "8080"
+DefaultPageLimit = 25
+CacheSize = 100000
+MaxPageLimit = 100
+BridgeVersion = "v1"
+    [BridgeServer.DB]
+    Database = "postgres"
+    User = "bridge_user"
+    Password = "bridge_password"
+    Name = "bridge_db"
+    Host = "zkevm-bridge-db"
+    Port = "5432"
+    MaxConns = 20
+
+[ClaimTxManager]
+FrequencyToMonitorTxs = "1s"
+PrivateKey = {Path = "/pk/sequencer.keystore", Password = "password"}
+Enabled = true
+
+[EthTxManager]
+ForcedGas = 10000000
+PrivateKeys = [
+	{Path = "/pk/sequencer.keystore", Password = "password"},
+	{Path = "/pk/aggregator.keystore", Password = "password"}
+]
