@@ -107,7 +107,7 @@ MaxGRPCMessageSize = 100000000
 [Metrics]
 Host = "0.0.0.0"
 Port = 9091
-Enabled = false
+Enabled = true
 ProfilingHost = "0.0.0.0"
 ProfilingPort = 6060
 ProfilingEnabled = false

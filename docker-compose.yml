@@ -9,7 +9,7 @@ volumes:
   pool_db_data:
   bridge_db_data:
   explorer_db_data:
-
+  loki_data:
 
 services:
   zkevm-state-db:
@@ -328,3 +328,81 @@ services:
     #  - ~/v1.1.0-rc.1-fork.4/config:/mnt/prover/config:ro
      - ~/zkevm/config.json:/app/config.json
     command: "zkProver -c /app/config.json"
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana-oss
+    volumes:
+      - ./observability/datasources.yml:/etc/grafana/provisioning/datasources/default.yml:ro
+      - ./observability/dashboards.yml:/etc/grafana/provisioning/dashboards/default.yml:ro
+      - ./observability/dashboard-dockers.json:/etc/grafana/provisioning/dashboards/dashboard-dockers.json:ro
+      - ./observability/dashboard-node.json:/etc/grafana/provisioning/dashboards/dashboard-node.json:ro
+      - ./observability/dashboard-logs.json:/etc/grafana/provisioning/dashboards/dashboard-logs.json:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=zkevm
+      - GF_SECURITY_ADMIN_PASSWORD=zkevm
+    ports:
+      - 3000:3000
+    depends_on:
+      - telegraf
+      - loki
+      - grafana-db
+  loki:
+    container_name: loki
+    image: grafana/loki:latest
+    restart: unless-stopped
+    user: root
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./observability/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki_data:/data/loki
+    command: -config.file=/etc/loki/loki-config.yaml 
+  promtail:
+    container_name: promtail
+    image: grafana/promtail:latest
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./observability/promtail-config.yaml:/etc/promtail/promtail-config.yaml:ro
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    depends_on:
+      - loki
+
+  telegraf:
+    container_name: telegraf
+    image: telegraf
+    volumes:
+      - ./observability/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - POSTGRES_HOST=grafana-db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=grafana
+    depends_on:
+      - grafana-db
+      - zkevm-rpc
+
+  grafana-db:
+    container_name: grafana-db
+    image: postgres:15
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=grafana
+
+  zkevm-metrics:
+    image: prom/prometheus:v2.39.1
+    container_name: zkevm-metrics
+    restart: unless-stopped
+    ports:
+      - 9099:9090
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-lifecycle
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus.yml:ro
